@@ -6,10 +6,17 @@
 #include <fcntl.h>
 #include <utils/Log.h>
 #include <sys/inotify.h>
-#include <sys/iocl.h>
+#include <sys/ioctl.h>
 #include <utils/Vector.h>
 #include <utils/KeyedVector.h>
 #include "EventHub.h"
+
+#define test_bit(bit, array)    (array[bit/8] & (1<<(bit%8)))
+
+/* this macro computes the number of bytes needed to represent a bit array of the specified size */
+#define sizeof_bit_array(bits)  ((bits + 7) / 8)
+
+namespace android {
 
 int EventHub::init() {
 	mNextDeviceId = 1;
@@ -22,7 +29,7 @@ int EventHub::init() {
 	return 1;
 }
 
-status_t EventHub::openDeviceLocked(const char *devicePath) {
+int EventHub::openDeviceLocked(const char *devicePath) {
 	char buffer[80];
 #if DEBUG_SWITCH
 	LOGE("[%s][%d] ==> opening device %s", __FUNCTION__, __LINE__, devicePath);
@@ -331,3 +338,5 @@ void EventHub::Device::close() {
 		fd = -1;
 	}
 }
+
+};

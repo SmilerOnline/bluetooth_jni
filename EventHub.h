@@ -1,10 +1,26 @@
 #ifndef __BLUETOOTH_EVENT_H__
 #define __BLUETOOTH_EVENT_H__
 
+#include <ui/Input.h>
+#include <ui/Keyboard.h>
+#include <ui/KeyLayoutMap.h>
+#include <ui/KeyCharacterMap.h>
+#include <ui/VirtualKeyMap.h>
 #include <utils/String8.h>
+#include <utils/threads.h>
+#include <utils/Log.h>
+#include <utils/threads.h>
+#include <utils/List.h>
+#include <utils/Errors.h>
+#include <utils/PropertyMap.h>
+#include <utils/Vector.h>
+#include <utils/KeyedVector.h>
+
+#include <linux/input.h>
+#include <sys/epoll.h>
 #include "define.h"
 
-
+namespace android {
 /*
  * Input device classes.
  */
@@ -41,7 +57,7 @@ enum {
 };
 
 struct RawEvent {
-    nsecs_t when;
+    //nsecs_t when;
     int32_t deviceId;
     int32_t type;
     int32_t scanCode;
@@ -52,42 +68,46 @@ struct RawEvent {
 
 class EventHub {
 public:
-	CREATE_FUNC(BluetoothEvent);
+	CREATE_FUNC(EventHub);
 	int init();
 	
 	int getEvents(int timeoutMillis, RawEvent *buffer, size_t bufferSize);
 	
-	status_t openDeviceLocked(const char *devicePath);
-	void closeDeviceLocked(Device *device)
+	struct Device {
+				int fd;
+				const int32_t id;
+				const String8 path;
+				const InputDeviceIdentifier identifier;
+				uint32_t classes;
+				
+				uint8_t keyBitMask[(KEY_MAX + 1) / 8];
+				uint8_t absBitmask[(ABS_MAX + 1) / 8];
+				uint8_t relBitmask[(REL_MAX + 1) / 8];
+				uint8_t swBitmask[(SW_MAX + 1) / 8];
+				uint8_t ledBitmask[(LED_MAX + 1) / 8];
+				uint8_t propBitmask[(INPUT_PROP_MAX + 1) / 8];
+				
+				Device(int fd, int32_t id, const String8 &path, const InputDeviceIdentifier identifier);
+				~Device();
+				void close();
+	};
+	
+	int openDeviceLocked(const char *devicePath);
+	void closeDeviceLocked(Device *device);
+	
 private:
+	
 	int readNotifyLocked();
 	int readDevice(Device *device, RawEvent *buffer, int bufferSize);
 	
-	keyedVector<int32_t, Device *> mDevices;
+	KeyedVector<int32_t, Device *> mDevices;
 	Device *mOpeningDevices;
 	Device *mClosingDevices;
 	
-	struct Device {
-		int fd;
-		const int32_t id;
-		const String8 path;
-		const InputDeviceIdentifier identifier;
-		uint32_t classes;
-		
-		uint8_t keyBitMask[(KEY_MAX + 1) / 8];
-		uint8_t absBitmask[(ABS_MAX + 1) / 8];
-		uint8_t relBitmask[(REL_MAX + 1) / 8];
-		uint8_t swBitmask[(SW_MAX + 1) / 8];
-		uint8_t ledBitmask[(LED_MAX + 1) / 8];
-		uint8_t propBitmask[(INPUT_PROP_MAX + 1) / 8];
-		
-		Device(int fd, int32_t id, const String8 &path, const InputDeviceIdentifier identifier);
-		~Device();
-		void close();
-	};
 	int iNotifyFd;
 	int mNextDeviceId;
-	vector<String8> mExcludedDevices;
+	Vector<String8> mExcludedDevices;
+};
 };
 
 #endif
