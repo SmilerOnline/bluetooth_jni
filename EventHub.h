@@ -15,7 +15,6 @@
 #include <utils/PropertyMap.h>
 #include <utils/Vector.h>
 #include <utils/KeyedVector.h>
-
 #include <linux/input.h>
 #include <sys/epoll.h>
 #include "define.h"
@@ -64,6 +63,21 @@ struct RawEvent {
     int32_t keyCode;
     int32_t value;
     uint32_t flags;
+    uint8_t count;
+};
+
+enum TOUCH_TYPE {
+	TOUCH_TYPE_SINGLE_POINTER = 0,
+	TOUCH_TYPE_MT_POINTER,
+	TOUCH_TYPE_RELEASE,
+};
+
+struct TouchEvent {
+	int32_t x;
+	int32_t y;
+	int32_t pointer;
+	int32_t pressure;
+	int32_t touchtype;
 };
 
 class EventHub {
@@ -74,27 +88,33 @@ public:
 	int getEvents(int timeoutMillis, RawEvent *buffer, size_t bufferSize);
 	
 	struct Device {
-				int fd;
-				const int32_t id;
-				const String8 path;
-				const InputDeviceIdentifier identifier;
-				uint32_t classes;
-				
-				uint8_t keyBitMask[(KEY_MAX + 1) / 8];
-				uint8_t absBitmask[(ABS_MAX + 1) / 8];
-				uint8_t relBitmask[(REL_MAX + 1) / 8];
-				uint8_t swBitmask[(SW_MAX + 1) / 8];
-				uint8_t ledBitmask[(LED_MAX + 1) / 8];
-				uint8_t propBitmask[(INPUT_PROP_MAX + 1) / 8];
-				
-				Device(int fd, int32_t id, const String8 &path, const InputDeviceIdentifier identifier);
-				~Device();
-				void close();
+		Device *next;
+		int fd;
+		const int32_t id;
+		const String8 path;
+		const InputDeviceIdentifier identifier;
+		uint32_t classes;			
+		uint8_t keyBitmask[(KEY_MAX + 1) / 8];
+		uint8_t absBitmask[(ABS_MAX + 1) / 8];
+		uint8_t relBitmask[(REL_MAX + 1) / 8];
+		uint8_t swBitmask[(SW_MAX + 1) / 8];
+		uint8_t ledBitmask[(LED_MAX + 1) / 8];
+		uint8_t propBitmask[(INPUT_PROP_MAX + 1) / 8];
+	
+
+		Device(int fd, int32_t id, const String8& path, const InputDeviceIdentifier& identifier);
+   	        ~Device();
+
+        	void close();
 	};
 	
 	int openDeviceLocked(const char *devicePath);
 	void closeDeviceLocked(Device *device);
-	
+	Device* getDeviceByPathLocked(const char* devicePath) const;
+	Device* getDeviceByClassesLocked(const uint32_t classes) const;
+	status_t closeDeviceByPathLocked(const char *devicePath);
+	int scanInput();
+	int injectTouchData(struct TouchEvent *event, int count);
 private:
 	
 	int readNotifyLocked();
