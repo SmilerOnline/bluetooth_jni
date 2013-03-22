@@ -75,6 +75,9 @@ enum TOUCH_TYPE {
 struct TouchEvent {
 	int32_t x;
 	int32_t y;
+	int32_t width_major;
+	int32_t touch_major;
+	int32_t btn_touch;
 	int32_t pointer;
 	int32_t pressure;
 	int32_t touchtype;

@@ -467,7 +467,7 @@ int EventHub::injectTouchData(struct TouchEvent *event, int count) {
 		LOGE("[%s][%d] ==> get touch device null", __FUNCTION__, __LINE__);
 		return -1;
 	}
-	struct input_event inputEvent[7];
+	struct input_event inputEvent[8];
 	memset(inputEvent, 0, sizeof(inputEvent));
 	size_t ret = 0;
 	LOGE("[%s][%d] ==> count = %d", __FUNCTION__, __LINE__, count);
@@ -478,15 +478,15 @@ int EventHub::injectTouchData(struct TouchEvent *event, int count) {
 				
 		inputEvent[1].type = EV_ABS;
 		inputEvent[1].code = ABS_MT_TRACKING_ID;
-		inputEvent[1].value = event[i].pointer;	
+		inputEvent[1].value = event[i].pressure;	
 				
 		inputEvent[2].type = EV_ABS;
 		inputEvent[2].code = ABS_MT_WIDTH_MAJOR;
-		inputEvent[2].value = (event[i].touchtype != TOUCH_TYPE_RELEASE) ? 1 : 0;	
+		inputEvent[2].value = event[i].width_major;	
 				
 		inputEvent[3].type = EV_ABS;
 		inputEvent[3].code = ABS_MT_TOUCH_MAJOR;
-		inputEvent[3].value = (event[i].touchtype != TOUCH_TYPE_RELEASE) ? 0xc8 : 0;
+		inputEvent[3].value = event[i].touch_major;
 				
 		inputEvent[4].type = EV_ABS;
 		inputEvent[4].code = ABS_MT_POSITION_X;
@@ -494,12 +494,16 @@ int EventHub::injectTouchData(struct TouchEvent *event, int count) {
 				
 		inputEvent[5].type = EV_ABS;
 		inputEvent[5].code = ABS_MT_POSITION_Y;
-		inputEvent[5].value = event[i].y;			
-				
-		inputEvent[6].type = EV_SYN;
-		inputEvent[6].code = SYN_MT_REPORT;
-		inputEvent[6].value = 0;	
-				
+		inputEvent[5].value = event[i].y;
+
+		inputEvent[6].type = EV_KEY;
+		inputEvent[6].code = BTN_TOUCH;
+		inputEvent[6].value = event[i].btn_touch;			
+#if 1				
+		inputEvent[7].type = EV_SYN;
+		inputEvent[7].code = SYN_MT_REPORT;
+		inputEvent[7].value = 0;	
+#endif				
 		ret = write(device->fd, inputEvent, sizeof(inputEvent));
 #if DEBUG_SWITCH
 		LOGE("[%s][%d] ==> write ret = %d", __FUNCTION__, __LINE__, ret);

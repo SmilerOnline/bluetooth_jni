@@ -16,7 +16,11 @@ void testTapPointer(TouchInject *touchInject) {
 	LOGE("testTouchOnePointer");
 	event.x = 500;
 	event.y = 400;
-	event.pressure = 100;
+	event.width_major = 1;
+	event.touch_major = 0xc8;
+	event.btn_touch = 1;
+	event.pointer = 0;
+	event.pressure = 0;
 	event.touchtype = TOUCH_TYPE_SINGLE_POINTER;
 	int ret = touchInject->injectPointerSync(&event, 1);
 	if (ret < 0) {
@@ -25,8 +29,11 @@ void testTapPointer(TouchInject *touchInject) {
 	
 	usleep(1000);
 	
+	memset(&event, 0, sizeof(struct TouchEvent));
 	event.x = 0;
 	event.y = 0;
+	event.pointer = 0;
+	event.pressure = 0xffffffff;
 	event.touchtype = TOUCH_TYPE_RELEASE;
 
 	ret = touchInject->injectPointerSync(&event, 1);
@@ -42,7 +49,11 @@ void testTouchOnePointer(TouchInject *touchInject) {
 	for (int i = 1280; i >= 0; i --) {
 		event.x = 700;
 		event.y = i;
-		event.pressure = 100;
+		event.width_major = 1;
+		event.touch_major = 0xc8;
+		event.btn_touch = 1;
+		event.pointer = 0;
+		event.pressure = 0;
 		event.touchtype = TOUCH_TYPE_SINGLE_POINTER;
 		int ret = touchInject->injectPointerSync(&event, 1);
 		if (ret < 0) {
@@ -52,8 +63,11 @@ void testTouchOnePointer(TouchInject *touchInject) {
 		usleep(1000);
 	}
 	
+	memset(&event, 0, sizeof(struct TouchEvent));
 	event.x = 0;
 	event.y = 0;
+	event.pointer = 0;
+	event.pressure = 0xffffffff;
 	event.touchtype = TOUCH_TYPE_RELEASE;
 	int ret = touchInject->injectPointerSync(&event, 1);
 	if (ret < 0) {
@@ -68,13 +82,19 @@ void testTouchTwoPointer(TouchInject *touchInject) {
 	for (int i = 0; i <= 1280; i ++) {
 		event[0].x = i;
 		event[0].y = 0;
+		event[0].width_major = 1;
+		event[0].touch_major = 0xc8;
 		event[0].touchtype = TOUCH_TYPE_MT_POINTER;
 		event[0].pointer = 0;
-		event[0].pressure = 100;
+		event[0].pressure = 0;
+		event[0].btn_touch = 1;
 		
 		event[1].x = i;
 		event[1].y = 100;
-		event[1].pressure = 100;
+		event[1].width_major = 1;
+		event[1].touch_major = 0xc8;
+		event[1].btn_touch = 1;
+		event[1].pressure = 1;
 		event[1].touchtype = TOUCH_TYPE_MT_POINTER;
 		event[1].pointer = 1;
 		int ret = touchInject->injectPointerSync(event, sizeof(event) / sizeof(struct TouchEvent));
@@ -86,8 +106,12 @@ void testTouchTwoPointer(TouchInject *touchInject) {
 	}
 	
 	memset(event, 0, sizeof(event));
+	event[0].pointer = 0;
+	event[0].pressure = 0xffffffff;
 	event[0].touchtype = TOUCH_TYPE_RELEASE;
 	event[1].touchtype = TOUCH_TYPE_RELEASE;
+	event[1].pointer = 1;
+	event[1].pressure = 0xffffffff;
 	int ret = touchInject->injectPointerSync(event, sizeof(event)/sizeof(struct TouchEvent));
 	if (ret < 0) {
 		printf("up inject pointer sync error");
@@ -102,13 +126,19 @@ void testTouchTwoPointerTap(TouchInject *touchInject) {
 	event[0].y = 400;
 	event[0].touchtype = TOUCH_TYPE_MT_POINTER;
 	event[0].pointer = 0;
-	event[0].pressure = 100;
+	event[0].pressure = 0;
+	event[0].width_major = 1;
+	event[0].touch_major = 0xc8;
+	event[0].btn_touch = 1;
 		
 	event[1].x = 500;
 	event[1].y = 200;
 	event[1].touchtype = TOUCH_TYPE_MT_POINTER;
 	event[1].pointer = 1;
-	event[1].pressure = 100;
+	event[1].pressure = 1;
+	event[1].width_major = 1;
+	event[1].touch_major = 0xc8;
+	event[1].btn_touch = 1;
 	int ret = touchInject->injectPointerSync(event, sizeof(event) / sizeof(struct TouchEvent));
 	if (ret < 0) {
 		printf("down inject pointer sync error");
@@ -117,8 +147,12 @@ void testTouchTwoPointerTap(TouchInject *touchInject) {
 	usleep(1000);
 	
 	memset(event, 0, sizeof(event));
+	event[0].pointer = 0;
+	event[0].pressure = 0xffffffff;
 	event[0].touchtype = TOUCH_TYPE_RELEASE;
 	event[1].touchtype = TOUCH_TYPE_RELEASE;
+	event[1].pointer = 1;
+	event[1].pressure = 0xffffffff;
 	ret = touchInject->injectPointerSync(event, sizeof(event)/sizeof(struct TouchEvent));
 	if (ret < 0) {
 		printf("up inject pointer sync error");
