@@ -9,6 +9,7 @@
 #include <sys/ioctl.h>
 #include <utils/Vector.h>
 #include <utils/KeyedVector.h>
+#include <sys/time.h>
 #include <dirent.h>
 #include "EventHub.h"
 #include "debug.h"
@@ -84,9 +85,18 @@ EventHub::Device::~Device() {
 
 void EventHub::Device::close() {
 	if (fd >= 0) {
+		LOGE("[%s][%d] ==> close fd (%d)", __FUNCTION__, __LINE__, fd);
 		::close (fd);
 		fd = -1;
 	}
+}
+
+void EventHub::release() {
+	for (size_t i = 0; i < mDevices.size(); i ++) {
+		delete mDevices.valueAt(i);
+	}
+	
+	delete this;
 }
 
 int EventHub::init() {
@@ -286,36 +296,46 @@ int EventHub::getEvents(int timeoutMillis, RawEvent *buffer,
 	int ret = 0;
 	int max_fd = 0;
 	fd_set input;
+	struct timeval timeout;
+	int32_t ms = 500;
 
 	FD_ZERO(&input);
+	
+	timeout.tv_sec  = ms / 1000;
+	timeout.tv_usec = (ms % 1000) * 1000;
 
 	if (mDevices.size() == 0) {
 		LOGE("[%s][%d] ==> no device", __FUNCTION__, __LINE__);
-		goto read_notify;
+		//goto read_notify;
+		return 0;
 	}
 
 	for (int i = 0; i < mDevices.size(); i++) {
 		Device *device = mDevices.valueAt(i);
 		max_fd = device->fd > max_fd ? device->fd : max_fd;
 		FD_SET(device->fd, &input);
-#if DEBUG_SWITCH
+#if EVENTHUB_DEBUG
 		LOGE("[%s][%d] ==> max_fd = %d", __FUNCTION__, __LINE__, max_fd);
 #endif
 	}
-
+#if EVENTHUB_DEBUG
 	LOGE("[%s][%d] ==> mDevice.size = %d", __FUNCTION__, __LINE__,
 			mDevices.size());
+#endif
 	max_fd += 1;
 
-	ret = select(max_fd, &input, NULL, NULL, NULL);
-
+	ret = select(max_fd, &input, NULL, NULL, &timeout);
+#if EVENTHUB_DEBUG
 	LOGE("[%s][%d] ==> select ret = %d", __FUNCTION__, __LINE__, ret);
+#endif
 	if (ret < 0) {
 		LOGE("[%s][%d] ==>  select failed errno = %d (%s)", __FUNCTION__,
 				__LINE__, errno, strerror(errno));
 		return -1;
 	} else if (0 == ret) {
+#if EVENTHUB_DEBUG
 		LOGE("[%s][%d] ==> time out", __FUNCTION__, __LINE__);
+#endif
 	} else {
 		for (int i = 0; i < mDevices.size(); i++) {
 			Device *device = mDevices.valueAt(i);
@@ -326,7 +346,7 @@ int EventHub::getEvents(int timeoutMillis, RawEvent *buffer,
 		return 1;
 	}
 
-	read_notify:
+//read_notify:
 	//readNotifyLocked();
 
 	return 0;
@@ -415,8 +435,10 @@ int EventHub::readNotifyLocked() {
 		if (event->len) {
 			strcpy(fileName, event->name);
 			if (event->mask & IN_CREATE) {
+				LOGE("[%s][%d] ==> added event %s", __FUNCTION__, __LINE__, devName);
 				openDeviceLocked(devName);
 			} else {
+				LOGE("[%s][%d] ==> removed event %s", __FUNCTION__, __LINE__, devName);
 				closeDeviceByPathLocked(devName);
 			}
 		}
@@ -479,7 +501,7 @@ int EventHub::injectTouchData(struct TouchEvent *event, int count) {
 		inputEvent[1].type = EV_ABS;
 		inputEvent[1].code = ABS_MT_TRACKING_ID;
 		inputEvent[1].value = event[i].pressure;	
-				
+#if 0			
 		inputEvent[2].type = EV_ABS;
 		inputEvent[2].code = ABS_MT_WIDTH_MAJOR;
 		inputEvent[2].value = event[i].width_major;	
@@ -487,7 +509,7 @@ int EventHub::injectTouchData(struct TouchEvent *event, int count) {
 		inputEvent[3].type = EV_ABS;
 		inputEvent[3].code = ABS_MT_TOUCH_MAJOR;
 		inputEvent[3].value = event[i].touch_major;
-				
+#endif			
 		inputEvent[4].type = EV_ABS;
 		inputEvent[4].code = ABS_MT_POSITION_X;
 		inputEvent[4].value = event[i].x;
@@ -495,11 +517,12 @@ int EventHub::injectTouchData(struct TouchEvent *event, int count) {
 		inputEvent[5].type = EV_ABS;
 		inputEvent[5].code = ABS_MT_POSITION_Y;
 		inputEvent[5].value = event[i].y;
-
+#if 0
 		inputEvent[6].type = EV_KEY;
 		inputEvent[6].code = BTN_TOUCH;
-		inputEvent[6].value = event[i].btn_touch;			
-#if 1				
+		inputEvent[6].value = event[i].btn_touch;
+#endif
+#if 0				
 		inputEvent[7].type = EV_SYN;
 		inputEvent[7].code = SYN_MT_REPORT;
 		inputEvent[7].value = 0;	

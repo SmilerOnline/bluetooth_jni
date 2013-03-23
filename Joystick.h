@@ -5,7 +5,7 @@
 
 namespace android {
 
-class Joystick {
+class Joystick : public RefBase {
 public:
 	CREATE_FUNC(Joystick);
 	int init() {
@@ -18,7 +18,7 @@ public:
 		LOGE("[%s][%d] ==> register callbackinterface", __FUNCTION__, __LINE__);
 	}
 	
-	int joystickProcess(RawEvent *rawEvent) {
+	int joystickProcess(const RawEvent *rawEvent) {
 		if (mCallBackInterface == NULL) {
 			LOGE("[%s][%d] ==> mCallBackInterface is NULL", __FUNCTION__, __LINE__);
 			return -1;

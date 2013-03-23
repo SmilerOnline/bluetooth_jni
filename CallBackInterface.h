@@ -5,10 +5,10 @@
 
 namespace android {
 
-class CallBackInterface {
+class CallBackInterface  : public RefBase  {
 public:
-	virtual int keyProcess(RawEvent *rawEvent) {};
-	virtual int joystickProcess(RawEvent *rawEvent) {};
+	int keyProcess(const RawEvent *rawEvent) { return 1; };
+	int joystickProcess(const RawEvent *rawEvent) { return 1; };
 };
 
 };

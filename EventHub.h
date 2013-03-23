@@ -83,10 +83,11 @@ struct TouchEvent {
 	int32_t touchtype;
 };
 
-class EventHub {
+class EventHub : public RefBase {
 public:
 	CREATE_FUNC(EventHub);
 	int init();
+	void release();
 	
 	int getEvents(int timeoutMillis, RawEvent *buffer, size_t bufferSize);
 	
@@ -118,9 +119,9 @@ public:
 	status_t closeDeviceByPathLocked(const char *devicePath);
 	int scanInput();
 	int injectTouchData(struct TouchEvent *event, int count);
-private:
-	
 	int readNotifyLocked();
+	
+private:
 	int readDevice(Device *device, RawEvent *buffer, int bufferSize);
 	
 	KeyedVector<int32_t, Device *> mDevices;

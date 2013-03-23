@@ -4,5 +4,6 @@
 #define DEBUG_ON 		1
 #define DEBUG_OFF 		0
 #define DEBUG_SWITCH DEBUG_ON
+#define EVENTHUB_DEBUG DEBUG_OFF
 
 #endif

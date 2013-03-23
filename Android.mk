@@ -57,7 +57,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional eng
 
-LOCAL_SRC_FILES := InputAdapter.cpp         
+LOCAL_SRC_FILES := InputAdapter.cpp     
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \

@@ -5,7 +5,7 @@
 
 namespace android {
 
-class KeyManager {
+class KeyManager : public RefBase  {
 public:
 	CREATE_FUNC(KeyManager);
 	int init() {
@@ -13,7 +13,7 @@ public:
 		return 1;
 	}
 	
-	int processKeys(RawEvent *rawEvent) {
+	int processKeys(const RawEvent *rawEvent) {
 		if (mCallBackInterface == NULL) {
 			LOGE("[%s][%d] ==> mCallBackInterface = NULL", __FUNCTION__, __LINE__);
 			return -1;
