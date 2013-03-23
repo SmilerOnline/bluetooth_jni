@@ -5,7 +5,7 @@
 
 namespace android {
 
-class KeyManager : public RefBase  {
+class KeyManager : public virtual RefBase  {
 public:
 	CREATE_FUNC(KeyManager);
 	int init() {

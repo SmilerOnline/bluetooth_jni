@@ -5,7 +5,7 @@
 
 namespace android {
 
-class Joystick : public RefBase {
+class Joystick : public virtual RefBase {
 public:
 	CREATE_FUNC(Joystick);
 	int init() {

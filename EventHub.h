@@ -83,7 +83,7 @@ struct TouchEvent {
 	int32_t touchtype;
 };
 
-class EventHub : public RefBase {
+class EventHub : public virtual RefBase {
 public:
 	CREATE_FUNC(EventHub);
 	int init();
